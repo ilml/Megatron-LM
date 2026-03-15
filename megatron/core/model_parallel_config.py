@@ -62,7 +62,7 @@ class ModelParallelConfig:
     can handle without overflowing the memory. Typically, a good starting point is to set this
     to maximum sequence length / context parallel size.
     This is used to calculate the number and length of sub-samples assigned to 
-    each rank when using hybrid_context_parallel.
+    each rank when sequence_packing_scheduler is not None.
     """
 
     hybrid_context_parallel: bool = False
@@ -72,17 +72,18 @@ class ModelParallelConfig:
     Please set max_seqlen_per_dp_cp_rank when using hybrid_context_parallel.
     """
 
+    sequence_packing_scheduler: Optional[Literal['dp_balanced']] = None
+    """
+    Scheduler for sequence packing and hybrid context parallel.
+    dp_balanced: DP-balanced scheduler for sequence packing.
+    """
+
     expert_model_parallel_size: int = 1
     """Distributes Moe Experts across sub data parallel dimension."""
 
     expert_tensor_parallel_size: Optional[int] = None
     """Intra-layer tensor model parallelism for expert layer. Splits tensors across GPU ranks.
        Default is None, which will be set to the value of tensor_model_parallel_size.
-    """
-
-    moe_extended_tp: bool = False
-    """NOTE: Deprecated from MCore v0.10. This flag is ignored.
-      Its functionality is replaced by expert_tensor_parallel_size.
     """
 
     ###################
@@ -176,9 +177,6 @@ class ModelParallelConfig:
        must turn off gradient accumulation fusion.
     """
 
-    async_tensor_model_parallel_allreduce: bool = True
-    """NOTE: Deprecated. This flag is ignored."""
-
     use_te_rng_tracker: bool = field(
         default=False, metadata={"argparse_meta": {"arg_names": ["--te-rng-tracker"]}}
     )
@@ -246,9 +244,14 @@ class ModelParallelConfig:
        Defaults to False.
     """
 
-    cross_entropy_fusion_impl: Literal['native', 'te'] = 'native'
-    """If 'native', MCore based CE loss fusion is used, if 'te', Parallel CE loss
-       from Transformer Engine library is used. Defaults to 'native'.
+    cross_entropy_fusion_impl: Literal['native', 'te', 'linear'] = 'native'
+    """
+    Specifies the implementation of cross-entropy loss fusion.
+
+    Options:
+    - 'native': Uses MCore-based cross-entropy loss fusion (default).
+    - 'te': Uses the parallel cross-entropy loss implementation from the Transformer Engine library.
+    - 'linear': Uses a linear-cross-entropy fusion approach.
     """
 
     tp_comm_overlap_disable_qkv: bool = False

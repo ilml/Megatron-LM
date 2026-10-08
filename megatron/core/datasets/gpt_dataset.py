@@ -59,6 +59,13 @@ class GPTDatasetConfig(BlendedMegatronDatasetConfig):
     Set to 0 if sequence parallel is not enabled regardless of TP size.
     """
 
+    dynamic_context_parallel: bool = False
+    """Option to enable dynamic context parallelism. When setting this to True,
+    each sample should be divisible by the data parallel size * context parallel size * 2.
+    If sequence parallel is enabled, it should be divisible by the
+    data parallel size * context parallel size * sequence parallel size * 2.
+    """
+
     hybrid_context_parallel: bool = False
     """Option to enable hybrid context parallelism. When setting this to True, 
     each sample should be divisible by the data parallel size * context parallel size * 2.
@@ -121,9 +128,9 @@ class GPTDatasetConfig(BlendedMegatronDatasetConfig):
         assert self.eod_mask_loss is not None
 
         if self.varlen_sbhd_validation:
-            assert not self.hybrid_context_parallel, (
-                "--varlen-sbhd-validation is incompatible with "
-                "--hybrid-context-parallel (SBHD mode is not packed)."
+            assert not (self.dynamic_context_parallel or self.hybrid_context_parallel), (
+                "--varlen-sbhd-validation is incompatible with dynamic (hybrid) context "
+                "parallelism (SBHD mode is not packed)."
             )
 
         self.token_dtype_code = (

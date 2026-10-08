@@ -11,6 +11,7 @@ from megatron.core.datasets.data_schedule_utils import (
     pad_packed_batch_before_cp_slice,
     reroute_samples_to_dcp_ranks,
 )
+from megatron.core.model_parallel_config import ModelParallelConfig
 
 
 def _batch():
@@ -91,6 +92,12 @@ def test_padding_disabled_preserves_batch():
     original = dict(batch)
     pad_packed_batch_before_cp_slice(batch, SimpleNamespace(), 2, 1)
     assert all(batch[key] is value for key, value in original.items())
+
+
+@pytest.mark.parametrize('alignment', [0, -1, 'invalid'])
+def test_packed_padding_config_rejects_invalid_alignment(alignment):
+    with pytest.raises(ValueError, match='positive integer'):
+        ModelParallelConfig(pad_packed_seq_alignment=alignment, max_seqlen_per_dp_cp_rank=128)
 
 
 def test_unpack_drops_prompt_only_truncated_tail():

@@ -31,6 +31,15 @@ def test_default_dynamic_cp_scheduler_requires_dynamic_cp():
         )
 
 
+def test_hybrid_cp_alias_normalizes_to_dynamic_cp():
+    with pytest.warns(DeprecationWarning, match="deprecated"):
+        config = ModelParallelConfig(hybrid_context_parallel=True, max_seqlen_per_dp_cp_rank=4096)
+
+    assert config.dynamic_context_parallel is True
+    assert config.hybrid_context_parallel is False
+    assert config.sequence_packing_scheduler == "default_dynamic_cp"
+
+
 @pytest.mark.parametrize("alignment", [None, "32", "max"])
 def test_packed_padding_cli_normalizes_alignment(monkeypatch, alignment):
     argv = ["test_model_parallel_config.py"]

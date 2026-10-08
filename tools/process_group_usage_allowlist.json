@@ -2,9 +2,6 @@
   "_comment": "Grandfathered reads of global process-group state in megatron/core. Entries are scope:kind:detail; duplicates count separate calls. This list must only shrink. Remove stale entries with `python tools/check_process_group_usage.py --update`.",
   "allowed": {
     "megatron/core/datasets/data_schedule.py": [
-      "HybridCPDataLoaderWrapper.__init__:accessor:parallel_state.get_data_parallel_group",
-      "HybridCPDataLoaderWrapper.__init__:accessor:parallel_state.get_data_parallel_group",
-      "HybridCPDataLoaderWrapper.__init__:accessor:parallel_state.get_tensor_model_parallel_group",
       "get_batch_on_this_rank_for_sequence_packing:accessor:parallel_state.get_context_parallel_group",
       "get_batch_on_this_rank_for_sequence_packing:accessor:parallel_state.get_pipeline_model_parallel_group",
       "get_batch_on_this_rank_for_sequence_packing:accessor:parallel_state.get_tensor_model_parallel_group",
@@ -320,5 +317,5 @@
       "make_tp_sharded_tensor_for_checkpoint:accessor:parallel_state.get_tensor_model_parallel_group"
     ]
   },
-  "total": 210
+  "total": 207
 }

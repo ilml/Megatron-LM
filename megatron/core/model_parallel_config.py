@@ -128,11 +128,7 @@ class ModelParallelConfig:
     """Minimum CP group size used by dynamic context parallelism."""
 
     hybrid_context_parallel: bool = False
-    """
-    If true, enables hybrid context parallel. This is used to balance the workload of 
-    each CP rank when we use packed samples with variable sequence lengths.
-    Please set max_seqlen_per_dp_cp_rank when using hybrid_context_parallel.
-    """
+    """Deprecated alias for ``dynamic_context_parallel``."""
 
     sequence_packing_scheduler: Optional[Literal['dp_balanced', 'default_dynamic_cp']] = None
     """
@@ -524,6 +520,19 @@ class ModelParallelConfig:
         See https://docs.python.org/3/library/dataclasses.html#post-init-processing for more
         details.
         """
+        if self.hybrid_context_parallel:
+            warnings.warn(
+                "hybrid_context_parallel is deprecated; use dynamic_context_parallel instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if self.dynamic_context_parallel:
+                raise ValueError(
+                    "Cannot set both hybrid_context_parallel and dynamic_context_parallel"
+                )
+            self.dynamic_context_parallel = True
+            self.hybrid_context_parallel = False
+
         if self.dynamic_context_parallel:
             if self.sequence_packing_scheduler is None:
                 self.sequence_packing_scheduler = 'default_dynamic_cp'
